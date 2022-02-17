@@ -37,9 +37,7 @@ exports.modifySauce = (req, res, next) => {
         });
       })
       .catch((error) => res.status(500).json({ error }));
-  } else {
   }
-
   const sauceObject = req.file
     ? {
         ...JSON.parse(req.body.sauce),

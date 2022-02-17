@@ -18,6 +18,29 @@ exports.createSauce = (req, res, next) => {
 };
 
 exports.modifySauce = (req, res, next) => {
+  if (!sauce) {
+    res.status(404).json({
+      error: new Error('Pas de sauce!')
+    });
+  }
+  if (sauce.userId !== req.auth.userId) {
+    res.status(400).json({
+      error: new Error('Requête non autorisée')
+    });
+  }
+  if(req.file){
+    Sauce.findOne({ _id: req.params.id })
+    .then((sauce) => {
+      const filename = sauce.imageUrl.split("/images/")[1];
+      fs.unlink(`images/${filename}`, (error) => {
+       if(error) throw error;
+      })
+    })
+    .catch((error) => res.status(500).json({ error }));
+  }else{
+
+  }
+  
   const sauceObject = req.file
     ? {
         ...JSON.parse(req.body.sauce),
@@ -28,7 +51,7 @@ exports.modifySauce = (req, res, next) => {
     : { ...req.body };
   Sauce.updateOne(
     { _id: req.params.id },
-    { ...sauceObject, _id: req.params.id }
+    { ...sauceObject, _id: req.params.id },
   )
     .then(() => res.status(200).json({ message: "Sauce modifiée !" }))
     .catch((error) => res.status(400).json({ error }));
@@ -37,6 +60,16 @@ exports.modifySauce = (req, res, next) => {
 exports.deleteSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
+      if (!sauce) {
+        res.status(404).json({
+          error: new Error('Pas de sauce!')
+        });
+      }
+      if (sauce.userId !== req.auth.userId) {
+        res.status(400).json({
+          error: new Error('Requête non autorisée')
+        });
+      }
       const filename = sauce.imageUrl.split("/images/")[1];
       fs.unlink(`images/${filename}`, () => {
         Sauce.deleteOne({ _id: req.params.id })
